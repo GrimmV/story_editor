@@ -13,9 +13,8 @@ import {
 } from "../../../fetching/retrieve";
 import { useQuery } from "react-query";
 import { fetchLoadingHandler } from "../../../utils/fetchLoadingHandler";
-import { createFrame } from "../../../fetching/update";
+import { changeChoiceNextFrame, createFrame } from "../../../fetching/update";
 import { fetchErrorHandler } from "../../../utils/fetchErrorHandler";
-import { useEffect } from "react";
 import EditorArea from "./EditorArea";
 import ChooseComponents from "./ChooseComponents";
 
@@ -40,23 +39,30 @@ export default function Editor(props) {
     isError: bubblesError,
     isLoading: bubblesIsLoading,
     refetch: bubblesRefetch,
-  } = useQuery(["bubbles", storyId], () => fetchBubblesOf(storyId));
+  } = useQuery(["bubbles", storyId, frameId], () => fetchBubblesOf(storyId));
   const {
     data: characters,
     isError: charactersError,
     isLoading: charactersIsLoading,
     refetch: charactersRefetch,
-  } = useQuery(["characters", storyId], () => fetchCharactersOf(storyId));
+  } = useQuery(["characters", storyId, frameId], () => fetchCharactersOf(storyId));
   const {
     data: choices,
     isError: choicesError,
     isLoading: choicesIsLoading,
     refetch: choicesRefetch,
-  } = useQuery(["choices", storyId], () => fetchChoicesOf(storyId));
+  } = useQuery(["choices", storyId, frameId], () => fetchChoicesOf(storyId));
 
-  const addFrame = () => {
-    createFrame(token, storyId).then(() => {
+  const addFrame = (prevFrameId) => {
+    return createFrame(token, storyId, prevFrameId).then(response => {
       framesRefetch();
+      return response.id
+    });
+  };
+  
+  const addNextFrameToChoice = (choiceId, answerId, nextFrameId) => {
+    changeChoiceNextFrame(token, choiceId, answerId, nextFrameId).then(() => {
+      choicesRefetch();
     });
   };
 
@@ -84,9 +90,9 @@ export default function Editor(props) {
           <Grid xs={3} item>
             <ChooseFrameBar
               frames={frames}
-              frameId={frameId}
               addNewFrame={addFrame}
-              storyId={storyId}
+              choices={choices}
+              addNextFrameToChoice={addNextFrameToChoice}
             />
           </Grid>
           <Grid xs={5} item>
@@ -120,9 +126,9 @@ export default function Editor(props) {
           <Grid xs={3} item>
             <ChooseFrameBar
               frames={frames}
-              frameId={frameId}
               addNewFrame={addFrame}
-              storyId={storyId}
+              choices={choices}
+              addNextFrameToChoice={addNextFrameToChoice}
             />
           </Grid>
         </Grid>

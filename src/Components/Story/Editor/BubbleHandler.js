@@ -1,31 +1,58 @@
 import React, {useState} from 'react';
 import { Typography, Slider, TextField, Box, Button } from '@mui/material';
+import { changePosition, saveBubbleContent, saveBubbleFontsize, saveBubbleWidth } from '../../../fetching/update';
+import { getToken } from '../../../utils/getToken';
 
 
 export default function BubbleHandler(props) {
 
-    const xPos = props.bubble.position.x;
-    const yPos = props.bubble.position.y;
-    const width = props.bubble.width;
-    const fontsize = props.bubble.fontSize;
+    const token = getToken()
 
-    const [tmpContent, setTmpContent] = useState(props.bubble.content ? props.bubble.content["de"] : "");
+    const {bubble, refetch} = props;
 
-    const savePosition = (newX, newY, commit) => {
-        props.changeBubblePosition(newX, newY, commit);
+    const xPos = bubble.position.x;
+    const yPos = bubble.position.y;
+    const width = bubble.width;
+    const fontsize = bubble.fontSize;
+
+    const [tmpContent, setTmpContent] = useState(bubble.content ? bubble.content["de"] : "");
+    
+    const [tmpWidth, setTmpWidth] = useState(width);
+    const [tmpPos, setTmpPos] = useState(bubble.position);
+    const [tmpFontsize, setTmpFontsize] = useState(fontsize);
+
+    const savePosition = (newX, newY) => {
+        changePosition(token, "bubble", bubble.id, newX, newY).then(() => {
+            refetch()
+        });
+    }
+    const updatePosition = (newX, newY) => {
+        setTmpPos({x: newX, y: newY});
     }
 
-    const saveWidth = (newWidth, commit) => {
-        props.changeBubbleWidth(newWidth, commit);
+    const saveWidth = (newWidth) => {
+        saveBubbleWidth(token, bubble.id, newWidth).then(() => {
+            refetch()
+        });;
+    }    
+    const updateWidth = (newWidth) => {
+        setTmpWidth(newWidth);
     }
 
-    const saveFontsize = (newFontsize, commit) => {
-        props.changeBubbleFontsize(newFontsize, commit);
+    const saveFontsize = (newFontsize) => {
+        saveBubbleFontsize(token, bubble.id, newFontsize).then(() => {
+            refetch()
+        });;
+    }
+    const updateFontsize = (newFontsize) => {
+        setTmpFontsize(newFontsize);
     }
 
     const saveContent = () => {
         setTmpContent("");
-        props.changeBubbleContent(tmpContent);
+        saveBubbleContent(token, bubble.id, tmpContent).then(() => {
+            refetch()
+        });;
     }
     
     if (!props.bubble) return;
@@ -44,51 +71,47 @@ export default function BubbleHandler(props) {
                 <Box>
                     <Typography>Y-Position</Typography>
                     <Slider max={100}
-                        value={yPos} onChange={(event, newValue) => {
-                            savePosition(props.bubble.position.x, newValue, false)
+                        value={tmpPos.y} onChange={(event, newValue) => {
+                            updatePosition(bubble.position.x, newValue)
                         }} onChangeCommitted={
                             (event, newValue) => {
-                            savePosition(props.bubble.position.x, newValue, true)
-                            console.log("y: " + newValue);
+                            savePosition(bubble.position.x, newValue)
                         }} aria-labelledby="continuous-slider" />
                 </Box>
-                <Typography>{"x: " + props.bubble.position.x}</Typography>
+                <Typography>{"x: " + tmpPos.y}</Typography>
                 <Box>
                     <Typography>X-Position</Typography>
                     <Slider  max={100}
-                    value={xPos} onChange={(event, newValue) => {
-                            savePosition(newValue, yPos, false)
+                    value={tmpPos.x} onChange={(event, newValue) => {
+                            updatePosition(newValue, yPos)
                         }} onChangeCommitted={
                             (event, newValue) => {
-                            savePosition(newValue, yPos, true)
-                            console.log("x: " + newValue);
+                            savePosition(newValue, yPos)
                         }} aria-labelledby="continuous-slider" />
                 </Box>
-                <Typography>{"y: " + props.bubble.position.y}</Typography>
+                <Typography>{"y: " + tmpPos.x}</Typography>
                 <Box>
                     <Typography>Schriftgröße</Typography>
                     <Slider max={50}
-                    value={fontsize} 
-                    onChange={(event, newValue) => {saveFontsize(newValue, false)}} 
+                    value={tmpFontsize} 
+                    onChange={(event, newValue) => {updateFontsize(newValue)}} 
                     onChangeCommitted={(event, newValue) => {
-                        saveFontsize(newValue, true)
-                        console.log("font: " + newValue);
+                        saveFontsize(newValue)
                     }}
                     aria-labelledby="continuous-slider" />
                 </Box>
-                <Typography>{"fontsize: " + fontsize}</Typography>
+                <Typography>{"fontsize: " + tmpFontsize}</Typography>
                 <Box>
                     <Typography>Breite</Typography>
                     <Slider max={100}
-                    value={width} 
-                    onChange={(event, newValue) => {saveWidth(newValue, false)}} 
+                    value={tmpWidth} 
+                    onChange={(event, newValue) => {updateWidth(newValue)}} 
                     onChangeCommitted={(event, newValue) => {
-                        saveWidth(newValue, true)
-                        console.log("width: " + newValue);
+                        saveWidth(newValue)
                     }}
                     aria-labelledby="continuous-slider" />
                 </Box>
-                <Typography>{"width: " + width}</Typography>
+                <Typography>{"width: " + tmpWidth}</Typography>
             </Box>
         </Box>
     )

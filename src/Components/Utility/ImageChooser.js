@@ -1,12 +1,32 @@
 import { Modal, Box, Button, Paper, Typography } from '@mui/material';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageCollection from './ImageCollection';
+import { useQuery } from 'react-query';
+import { fetchLoadingHandler } from '../../utils/fetchLoadingHandler';
+import { fetchErrorHandler } from '../../utils/fetchErrorHandler';
 
 export default function ImageChooser(props) {
 
     const [modalOpen, setModalOpen] = useState(false);
+
+    const {collectionFetcher, collectionIdentifier} = props;
+        
+    const {
+        data: collection,
+        isError,
+        isLoading,
+    } = useQuery(["collection" + collectionIdentifier], collectionFetcher);
+
+    const loadingResult = fetchLoadingHandler(
+        [isLoading],
+        ["Bildersammlung"]
+    );
+    const errorResult = fetchErrorHandler(
+        [isError],
+        ["Bildersammlung"]
+    );
     
     const handleOpen = () => {
         setModalOpen(true)
@@ -52,13 +72,21 @@ export default function ImageChooser(props) {
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
                         p: 4,
+                        minWidth: 400,
+                        minHeight: 400
                     }}
                 >
                 {
-                    props.collection &&
-                    <ImageCollection images={props.collection}
+                    !loadingResult && collection &&
+                    <ImageCollection images={collection}
                         closeModal={handleClose} updateImage={updateImage}
                     />
+                }
+                {
+                    loadingResult
+                }
+                {
+                    errorResult
                 }
                 </Paper>
             </Modal>

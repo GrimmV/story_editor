@@ -4,14 +4,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./Components/Home/Home";
 import Login from "./Components/Login/Login";
 import { checkTokenExpiry } from "./fetching/auth";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import Menu from "./Components/Menu/Menu";
 import { useQuery } from "react-query";
 import StoryOverview from "./Components/Story/Stories/StoryOverview";
 import { getToken } from "./utils/getToken";
 import Editor from "./Components/Story/Editor/Editor";
 import { fetchLoadingHandler } from "./utils/fetchLoadingHandler";
-import { fetchErrorHandler } from "./utils/fetchErrorHandler";
 
 function App() {
   let token = getToken();
@@ -41,13 +40,11 @@ function App() {
     [isLoading],
     ["Token expiration"]
   );
-  const errorResult = fetchErrorHandler(
-    [isError],
-    ["Token expiration"]
-  );
 
   if (loadingResult) return loadingResult;
-  if (errorResult) return errorResult;
+  // if (isError) {
+  //   setIsAuthorized(false)
+  // }
 
   const logout = () => {
     setIsAuthorized(false);
@@ -67,7 +64,7 @@ function App() {
               <Route path="/stories" element={<StoryOverview />} />
               {["/stories/:storyId", "/stories/:storyId/:frameId"].map(
                 (path, index) => {
-                  return <Route path={path} element={<Editor />} key={index} />;
+                  return <Route path={path} element={<Editor />} key={path} />;
                 }
               )}
             </Routes>

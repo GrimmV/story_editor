@@ -66,13 +66,14 @@ export const createStory = (token, title) => {
     .catch(error => console.log('error', error));
 }
 
-export const createFrame = (token, storyId) => {
+export const createFrame = (token, storyId, prevFrameId) => {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Authorization", "Bearer " + token);
 
     const raw = JSON.stringify({
-        "substoryId": storyId
+        "substoryId": storyId,
+        "prevFrameId": prevFrameId
     });
 
     const requestOptions = {
@@ -349,6 +350,12 @@ export const saveBubbleContent = (token, id, newContent) => {
 export const addChoice = (token, id, frameId, substoryId, answerText) => {
     const myHeaders = new Headers();
 
+    let tmpId = id;
+
+    if (!id) {
+        tmpId = "none"
+    }
+
     myHeaders.append("Content-Type", "application/json")
     myHeaders.append("Authorization", "Bearer " + token);
 
@@ -359,7 +366,7 @@ export const addChoice = (token, id, frameId, substoryId, answerText) => {
         redirect: 'follow'
     }
 
-    return fetch(fullBasePath + "/choices/add/" + id + "/" + frameId + "/" + substoryId, requestOptions)
+    return fetch(fullBasePath + "/choices/add/" + tmpId + "/" + frameId + "/" + substoryId, requestOptions)
     .then(handleWrongFetchResult)
     .then(response => response.json())
     .catch(error => {
@@ -464,6 +471,27 @@ export const removeChoice = (token, id, answerId) => {
     }
 
     return fetch(fullBasePath + "/choices/remove/" + id, requestOptions)
+    .then(handleWrongFetchResult)
+    .then(response => response.json())
+    .catch(error => {
+        console.log('error', error)
+        return null;
+    });
+}
+
+export const deleteChoices = (token, id) => {
+    const myHeaders = new Headers();
+
+    myHeaders.append("Content-Type", "application/json")
+    myHeaders.append("Authorization", "Bearer " + token);
+
+    const requestOptions = {
+        method: 'DELETE',
+        headers: myHeaders,
+        redirect: 'follow'
+    }
+
+    return fetch(fullBasePath + "/choices/delete/" + id, requestOptions)
     .then(handleWrongFetchResult)
     .then(response => response.json())
     .catch(error => {

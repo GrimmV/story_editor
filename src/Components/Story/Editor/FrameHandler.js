@@ -1,39 +1,22 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import { Box, Button} from '@mui/material';
-import NextFrameSelector from './NextFrameSelector';
 import DeleteModal from '../../Utility/DeleteModal';
-import { addBackgroundToFrame, changeBackgroundImageSource, changeNextFrame, deleteFrame, getBackgroundImageCollection, removeFrameBackground } from '../../../fetching/update';
+import { changeBackgroundImageSource, deleteFrame, getBackgroundImageCollection, removeFrameBackground } from '../../../fetching/update';
 import ImageChooser from '../../Utility/ImageChooser';
-import { fetchLoadingHandler } from '../../../utils/fetchLoadingHandler';
-import { fetchErrorHandler } from '../../../utils/fetchErrorHandler';
 import { getToken } from '../../../utils/getToken';
-import { useQuery } from 'react-query';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toStoryEditor } from '../../../routing/routes';
 
 export default function FrameHandler(props) {
 
-    const {frame, frameIds, refetch} = props;
+    const {frame, refetch} = props;
+    const navigate = useNavigate();
+    const {storyId} = useParams();
 
     const token = getToken()
 
     const [modalOpen, setModalOpen] = useState(false);
 
-    const {
-        data: collection,
-        isError,
-        isLoading,
-    } = useQuery(["backgroundCollection"], getBackgroundImageCollection);
-
-    const loadingResult = fetchLoadingHandler(
-        [isLoading],
-        ["Bildersammlung"]
-    );
-    const errorResult = fetchErrorHandler(
-        [isError],
-        ["Bildersammlung"]
-    );
-      
-    if (loadingResult) return loadingResult;
-    if (errorResult) return errorResult;
 
     const openDeleteModal = () => {
         setModalOpen(true);
@@ -55,26 +38,17 @@ export default function FrameHandler(props) {
         })
     }
 
-    const handleNextFrameChange = (event) => {
-        changeNextFrame(token, frame.id, event.target.value).then(() => {
-            refetch()
-        })
-    }
-
     const removeFrame = () => {
         deleteFrame(token, frame.id).then(() => {
-            refetch()
+            navigate(toStoryEditor(storyId))
         })
     }
 
     return(
         <Box sx={{display: "flex", justifyContent: "center", flexDirection: "column"}}>
-            <ImageChooser image={frame.backgroundImage} saveImage={setBackground} collection={collection} 
-                            deleteImage={removeBackground}
-            />
-            <NextFrameSelector 
-                handleNextFrameChange={handleNextFrameChange} nextFrameId={frame.nextFrameId}
-                frameIds={frameIds}
+            <ImageChooser image={frame.backgroundImage} saveImage={setBackground}
+                            deleteImage={removeBackground} collectionFetcher={getBackgroundImageCollection}
+                            collectionIdentifier={"background"}
             />
             <Button 
                 onClick={openDeleteModal} variant="contained" color="error"

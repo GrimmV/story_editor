@@ -16,6 +16,7 @@ export default function ImageCollection(props) {
             images.push(
                 <Paper sx={{
                     m: 1, p: 1,
+                    key: image,
                     "&:hover": {
                         cursor: "pointer"
                     },

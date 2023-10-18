@@ -1,11 +1,12 @@
-import { Modal, Box, Button, Paper, Typography } from '@mui/material';
-import React, {useEffect, useState} from 'react';
+import { Modal, Box, Button, Paper } from '@mui/material';
+import React, {useState} from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ImageCollection from './ImageCollection';
 import { useQuery } from 'react-query';
 import { fetchLoadingHandler } from '../../utils/fetchLoadingHandler';
 import { fetchErrorHandler } from '../../utils/fetchErrorHandler';
+import { Update } from '@mui/icons-material';
 
 export default function ImageChooser(props) {
 
@@ -41,7 +42,7 @@ export default function ImageChooser(props) {
     }
 
     const deleteImage = () => {
-        // props.deleteImage();
+        props.deleteImage();
     }
 
     return(
@@ -51,9 +52,9 @@ export default function ImageChooser(props) {
             {
                 props.image
                 ?
-                <Box>
-                    <Typography sx={{mb: 1}}>{props.image}</Typography>
-                    <Button onClick={handleOpen}><AddIcon/>Bild ändern</Button>
+                <Box sx={{display: "flex", justifyContent: "space-around", width: "100%"}}>
+                    {/* <Typography align='center' sx={{mb: 1}}>{props.image.split("/")[props.image.split("/").length - 1]}</Typography> */}
+                    <Button onClick={handleOpen}><Update/>Bild ändern</Button>
                     <Button onClick={deleteImage} color="error"><DeleteIcon/>Bild löschen</Button>
                 </Box>
                 :<Button onClick={handleOpen}><AddIcon/>Bild hinzufügen</Button>

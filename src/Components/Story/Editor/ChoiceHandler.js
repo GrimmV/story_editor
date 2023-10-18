@@ -61,7 +61,7 @@ export default function ChoiceHandler(props) {
 
     return (
         <Box>
-            <Box sx={{display: "flex", justifyContent:"space-around", mb: 1}}>
+            <Box sx={{display: "flex", flexDirection: "column", justifyContent:"space-around", mb: 1}}>
                 <ChoiceAnswerText isInvalidValue={isInvalidValue} getErrorMessage={getErrorMessage}
                     text={answer} handleChange={handlerAnswerChange}
                 />
@@ -84,6 +84,8 @@ export default function ChoiceHandler(props) {
                     </Button>
                 }
             </Box>
+            {
+                choices &&
             <Box>
                 <Box>
                     <Typography>Y-Position</Typography>
@@ -100,6 +102,7 @@ export default function ChoiceHandler(props) {
                     />
                 </Box>
             </Box>
+            }
         </Box>
     )
 }

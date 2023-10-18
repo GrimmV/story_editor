@@ -89,6 +89,29 @@ export const createFrame = (token, storyId, prevFrameId) => {
     .catch(error => console.log('error', error));
 }
 
+export const moveFrame = (token, frameId, newPrevFrameId) => {
+    const myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Bearer " + token);
+
+    const raw = JSON.stringify({
+        "frameId": frameId,
+        "newPrevFrameId": newPrevFrameId
+    });
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+    };
+
+    return fetch(fullBasePath + "/frame/moveFrame", requestOptions)
+    .then(response => handleResponse(response))
+    .then(response => response.json())
+    .catch(error => console.log('error', error));
+}
+
 export const deleteFrame = (token, frameId) => {
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");

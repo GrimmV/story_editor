@@ -1,46 +1,23 @@
-export default function organizeFrames(frames, choices) {
-  let organized = { first: [] };
-  let frameMap = {};
-  let choiceMap = {};
+export default function organizeFrames(frames, bubbles, choices) {
+  let orderedFrames = [];
+  let disconnectedFrames = [];
 
-  // Map frames by their id for easy lookup
-  frames.forEach((frame) => {
-    frameMap[frame.id] = frame;
-  });
+  let activeFrame = frames.find((f) => f.first);
 
-  // Map choices by their frameId
-  choices.forEach((choice) => {
-    choiceMap[choice.frameId] = choice;
-  });
-  // console.log(choiceMap)
+  while (activeFrame) {
+    const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === activeFrame.id) : null;
+    orderedFrames.push({frame: activeFrame, text: bubble ? bubble.content["de"] : ""});
+    activeFrame = frames.find((f) => {
+      return f.id === activeFrame.nextFrameId;
+    });
+  }
 
-  // Helper function to handle recursive creation of the sequence
-  function processFrame(frame, key) {
-    organized[key].push(frame);
-    let nextFrame = frames.find((f) => f.prevFrameId === frame.id);
-
-    if (frame.id) {
-      let choice = choiceMap[frame.id];
-      if (choice) {
-        // If a choice exists for the next frame, process each answer
-        choice.answers.forEach((answer) => {
-          organized[answer.answer.de] = [];
-          if (answer.nextFrame) {
-            let nextChoiceFrame = frames.find(frame => frame.id === answer.nextFrame);
-            processFrame(nextChoiceFrame, answer.answer.de);
-          }
-        });
-      } else if (nextFrame) {
-        processFrame(nextFrame, key);
-      }
+  for (let frame of frames){
+    const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === frame.id) : null;
+    if (!orderedFrames.includes(frame)) {
+      disconnectedFrames.push({frame: frame, text: bubble ? bubble.content["de"] : ""});
     }
   }
 
-  // Start processing from the first frame
-  let startFrame = frames.find((frame) => !frame.prevFrameId);
-  if (startFrame) {
-    processFrame(startFrame, "first");
-  }
-
-  return organized;
+  return {orderedFrames: orderedFrames, disconnectedFrames: disconnectedFrames};
 }

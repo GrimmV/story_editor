@@ -3,7 +3,7 @@ import ChooseFrameBar from "./ChooseFrameBar";
 // import EditorArea from "./EditorArea"
 // import ChooseComponents from "./ChooseComponents"
 import { getToken } from "../../../utils/getToken";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   fetchBubblesOf,
   fetchCharactersOf,
@@ -13,15 +13,25 @@ import {
 } from "../../../fetching/retrieve";
 import { useQuery } from "react-query";
 import { fetchLoadingHandler } from "../../../utils/fetchLoadingHandler";
-import { changeChoiceNextFrame, createFrame } from "../../../fetching/update";
+import { changeChoiceNextFrame, createFrame, deleteFrame, moveFrame } from "../../../fetching/update";
 import { fetchErrorHandler } from "../../../utils/fetchErrorHandler";
 import EditorArea from "./EditorArea";
 import ChooseComponents from "./ChooseComponents";
+import { getConvHistoryUntilNow } from "../../../utils/getConvHistoryUntilNow";
+import GPTSetup from "./GptSetup";
+import { toStoryEditor } from "../../../routing/routes";
+import { useState } from "react";
 
 export default function Editor(props) {
   const token = getToken();
 
   const { storyId, frameId } = useParams();
+
+  const navigate = useNavigate();
+
+  const [gptSetup, setGptSetup] = useState({
+    workArea: "", employee: "", employeeInfo: "", employer: "", employerInfo: ""
+  })
 
   const {
     data: story,
@@ -39,22 +49,42 @@ export default function Editor(props) {
     isError: bubblesError,
     isLoading: bubblesIsLoading,
     refetch: bubblesRefetch,
-  } = useQuery(["bubbles", storyId, frameId], () => fetchBubblesOf(storyId));
+  } = useQuery(["bubbles", storyId], () => fetchBubblesOf(storyId));
   const {
     data: characters,
     isError: charactersError,
     isLoading: charactersIsLoading,
     refetch: charactersRefetch,
-  } = useQuery(["characters", storyId, frameId], () => fetchCharactersOf(storyId));
+  } = useQuery(["characters", storyId], () => fetchCharactersOf(storyId));
   const {
     data: choices,
     isError: choicesError,
     isLoading: choicesIsLoading,
     refetch: choicesRefetch,
-  } = useQuery(["choices", storyId, frameId], () => fetchChoicesOf(storyId));
+  } = useQuery(["choices", storyId], () => fetchChoicesOf(storyId));
 
   const addFrame = (prevFrameId) => {
     return createFrame(token, storyId, prevFrameId).then(response => {
+      framesRefetch();
+      return response.id
+    }).then(v => {
+      bubblesRefetch();
+      charactersRefetch();
+      choicesRefetch();
+    });
+  };
+
+  const removeFrame = (selectedFrameId) => {
+    return deleteFrame(token, selectedFrameId).then(response => {
+      framesRefetch();
+      if (selectedFrameId === frameId) {
+        navigate(toStoryEditor(storyId))
+      }
+    });
+  };
+
+  const moveFramePosition = (sourceFrameId, newPrevFrameId) => {
+    return moveFrame(token, sourceFrameId, newPrevFrameId).then(response => {
       framesRefetch();
       return response.id
     });
@@ -77,6 +107,8 @@ export default function Editor(props) {
 
   if (loadingResult) return loadingResult;
   if (errorResult) return errorResult;
+  
+  const conversationHistory = getConvHistoryUntilNow(frames, bubbles, frameId);
 
   const activeBubble = bubbles.find((v) => v.frameId === frameId);
   const activeCharacter = characters.find((v) => v.frameId === frameId);
@@ -87,15 +119,18 @@ export default function Editor(props) {
     if (frameId) {
       return (
         <Grid sx={{ p: 3 }} container>
-          <Grid xs={3} item>
+          <Grid xs={4} item>
             <ChooseFrameBar
+              bubbles={bubbles}
               frames={frames}
               addNewFrame={addFrame}
+              moveFrame={moveFramePosition}
               choices={choices}
               addNextFrameToChoice={addNextFrameToChoice}
+              removeFrame={removeFrame}
             />
           </Grid>
-          <Grid xs={5} item>
+          <Grid xs={4} item>
             <EditorArea
               choices={activeChoices}
               character={activeCharacter}
@@ -105,6 +140,8 @@ export default function Editor(props) {
           </Grid>
           <Grid xs={4} item>
             <ChooseComponents
+              conversationHistory={conversationHistory}
+              gptSetup={gptSetup}
               frame={activeFrame}
               character={activeCharacter}
               bubble={activeBubble}
@@ -127,6 +164,7 @@ export default function Editor(props) {
             <ChooseFrameBar
               frames={frames}
               addNewFrame={addFrame}
+              moveFrame={moveFramePosition}
               choices={choices}
               addNextFrameToChoice={addNextFrameToChoice}
             />
@@ -144,6 +182,7 @@ export default function Editor(props) {
       <Typography variant="h2" align="center">
         {story.title["de"]}
       </Typography>
+      <GPTSetup gptSetup={gptSetup} setGptSetup={setGptSetup}/>
       {gridRenderer()}
     </Box>
   );

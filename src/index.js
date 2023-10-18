@@ -97,13 +97,13 @@ theme = createTheme(theme, {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ThemeProvider theme={theme}>
-    <React.StrictMode>
+    {/* <React.StrictMode> */}
       <QueryClientProvider client={queryClient}>
         <Suspense fallback=<SuspenseLoader/> >
           <App />
         </Suspense>
       </QueryClientProvider>
-    </React.StrictMode>
+    {/* </React.StrictMode> */}
   </ThemeProvider>
 );
 

@@ -1,58 +1,45 @@
 import React, { useState } from 'react';
-import { Typography, Box, Tabs, Tab } from '@mui/material';
+import { Box } from '@mui/material';
 import FrameHandler from './FrameHandler';
 import CharacterHandler from './CharacterHandler';
 import BubbleHandler from './BubbleHandler';
 import ChoiceHandler from './ChoiceHandler';
+import { useParams } from 'react-router-dom';
+import GPTRecommenderWrapper from './GPTRecommendWrapper';
+import ChatPopover from '../Utils/ChatPopover';
 
 export default function ChooseComponents(props) {
 
-    const {frame, character, bubble, choices, frameIds, refetches} = props;
+    const {conversationHistory, frame, character, bubble, choices, frameIds, refetches, gptSetup} = props;
+    const { storyId, frameId } = useParams();
 
-    const [activeTab, setActiveTab] = useState("general")
-
-    const handleTabChange = (e, newValue) => {
-        setActiveTab(newValue);
-    };
+    console.log(conversationHistory);
     
     return (
-        <Box sx={{float: "left", mt: 2}}>
-            <Typography sx={{mb: 2}} variant="h3" align="center">
-                Elemente Bearbeiten
-            </Typography>
-            <Tabs value={activeTab} onChange={handleTabChange} sx={{m: 3}}>
-                <Tab label="Allgemein" value="general"/>
-                <Tab label="Charakter" value="character" />
-                <Tab label="Sprechblase" value="bubble" />
-                <Tab label="Entscheidung" value="choice" />
-            </Tabs>
-            <Box sx={{position: "relative"}}>
-                {activeTab === "general" && 
+        <Box sx={{display: "flex", flexDirection:"column", alignItems: "center"}}>
+            <ChatPopover>
+                <GPTRecommenderWrapper gptSetup={gptSetup} conversationHistory={conversationHistory} bubblesRefetch={refetches.bubblesRefetch} bubbleId={bubble.id}/>
+            </ChatPopover>
+            <Box>
                     <FrameHandler 
                         frame={frame}
                         frameIds={frameIds}
-                        refetch={refetches["framesRefetch"]}
+                        refetch={refetches.framesRefetch}
                     />
-                }
-                {activeTab === "character" && 
                     <CharacterHandler 
                         character={character}
                         refetch={refetches.charactersRefetch}
                     />
-                }
-                {activeTab === "bubble" && 
         
                     <BubbleHandler 
+                        frameId={frameId}
                         bubble={bubble}
                         refetch={refetches.bubblesRefetch}
                     />
-                }
-                {activeTab === "choice" && 
                     <ChoiceHandler 
                         choices={choices}
                         refetch={refetches.choicesRefetch}
                     />
-                }
 
             </Box>
         </Box>

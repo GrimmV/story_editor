@@ -1,34 +1,34 @@
-import { Replay } from "@mui/icons-material";
-import { Box, Button, Paper, Typography } from "@mui/material";
-import { useParams } from "react-router-dom";
+import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 import GPTRecommender from "./GPTRecommender";
-import { useQuery } from "react-query";
-import { getRecommendation } from "../../../fetching/gpt";
 
 export default function GPTRecommenderWrapper(props) {
 
-    const { storyId, frameId } = useParams();
+    const {gptSetup, gptSetupIsLoading, gptSetupError, conversationHistory, bubblesRefetch, bubbleId} = props;
 
-    const {gptSetup, conversationHistory, bubblesRefetch, bubbleId} = props;
-        
-    const {
-        data: gpt,
-        isError,
-        // isLoading,
-        isFetching,
-        refetch
-    } = useQuery(["gpt-recommendation", storyId, frameId], () =>
-        getRecommendation(gptSetup, conversationHistory)
-    );
+    let errorGptSetup = {}
+    
+    if (gptSetupIsLoading) {
+        return (
+          <Box sx={{width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center"}}>
+            <Typography>
+              Einstellungen werden geladen
+            </Typography>
+            <CircularProgress/>
+          </Box>
+        );
+    } 
+    if (gptSetupError) {
+        errorGptSetup["workArea"] = "";
+        errorGptSetup["employer"] = "";
+        errorGptSetup["employerInfo"] = "";
+        errorGptSetup["employee"] = "";
+        errorGptSetup["employeeInfo"] = "";
+    }
 
     return(
         <Paper sx={{ m: 2, p: 1 }}>
-            <Box sx={{display: "flex", justifyContent: "space-between", mb: 1}}>
-                <Typography variant="h3">Chat-GPT Unterstützung</Typography>
-                <Button onClick={refetch} endIcon=<Replay/> color="primary">Erneuern</Button>
-            </Box>
             <GPTRecommender
-                gpt={gpt} isError={isError} conversationHistory={conversationHistory} isFetching={isFetching}
+                conversationHistory={conversationHistory} gptSetup={gptSetupError ? errorGptSetup : gptSetup}
                 bubblesRefetch={bubblesRefetch} bubbleId={bubbleId}
             />
         </Paper>

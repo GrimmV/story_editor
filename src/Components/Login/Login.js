@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Paper, TextField, Button, Box, Typography } from '@mui/material';
 import { login } from '../../fetching/auth';
+import uploadClick from '../../fetching/uploadData';
 
 export default function Login(props) {
 
@@ -27,7 +28,9 @@ export default function Login(props) {
         .then(
             jwt => {
                 localStorage.setItem("jwt", jwt);
+                localStorage.setItem("user", name)
                 props.setIsLoggedIn();
+                uploadClick("login", "eingeloggt")
             }
         )
         .catch(error => {console.log(error)});

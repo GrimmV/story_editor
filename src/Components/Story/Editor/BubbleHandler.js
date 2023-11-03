@@ -8,6 +8,8 @@ import {
 } from "../../../fetching/update";
 import { getToken } from "../../../utils/getToken";
 import EasyPopover from "../Utils/EasyPopover";
+import uploadClick from "../../../fetching/uploadData";
+import { shortenFrameId } from "../../Utility/Helper";
 
 export default function BubbleHandler(props) {
   const token = getToken();
@@ -19,15 +21,19 @@ export default function BubbleHandler(props) {
   const width = bubble.width;
   const fontsize = bubble.fontSize;
 
+
+
   const [tmpContent, setTmpContent] = useState(
     bubble.content ? bubble.content["de"] : ""
   );
 
-  // useEffect(() => {
-  //     console.log(frameId)
-  //     console.log(bubble.content)
-  //     setTmpContent(bubble.content ? bubble.content["de"] : "")
-  // }, [frameId])
+  useEffect(() => {
+    if(bubble?.content["de"] === null) {
+      setTmpContent("")
+    } else {
+      setTmpContent(bubble.content["de"])
+    }
+  }, [frameId])
 
   const [tmpWidth, setTmpWidth] = useState(width);
   const [tmpPos, setTmpPos] = useState(bubble.position);
@@ -64,6 +70,7 @@ export default function BubbleHandler(props) {
     // setTmpContent("");
     saveBubbleContent(token, bubble.id, tmpContent).then(() => {
       refetch();
+      uploadClick("manuell", `eigener Text ${shortenFrameId(frameId)}`)
     });
   };
 
@@ -83,7 +90,7 @@ export default function BubbleHandler(props) {
               setTmpContent(event.target.value);
             }}
           />
-          <Button onClick={saveContent} variant="contained">
+          <Button onClick={saveContent} variant="contained" sx={{width: "100%"}}>
             Text speichern
           </Button>
         </Box>

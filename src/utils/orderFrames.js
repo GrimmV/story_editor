@@ -1,23 +1,49 @@
+// export default function organizeFrames(frames, bubbles, choices) {
+//   let orderedFrames = [];
+
+//   let activeFrame = frames.find((f) => f.first);
+
+//   while (activeFrame) {
+//     const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === activeFrame.id) : null;
+//     orderedFrames.push({frame: activeFrame, text: bubble ? bubble.content["de"] : ""});
+//     activeFrame = frames.find((f) => {
+//       return f.id === activeFrame.nextFrameId;
+//     });
+//   }
+
+//   return orderedFrames;
+// }
+
+
 export default function organizeFrames(frames, bubbles, choices) {
-  let orderedFrames = [];
-  let disconnectedFrames = [];
+  let orderedFramesDict = {};
+  let currentKey = "first";
 
-  let activeFrame = frames.find((f) => f.first);
+  function processFrame(frameId, key) {
+      let activeFrame = frames.find(f => f.id === frameId);
+      if (!activeFrame) return;
 
-  while (activeFrame) {
-    const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === activeFrame.id) : null;
-    orderedFrames.push({frame: activeFrame, text: bubble ? bubble.content["de"] : ""});
-    activeFrame = frames.find((f) => {
-      return f.id === activeFrame.nextFrameId;
-    });
+      if (!orderedFramesDict[key]) orderedFramesDict[key] = [];
+
+      const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === frameId) : null;
+      orderedFramesDict[key].push({frame: activeFrame, text: bubble ? bubble.content["de"] : ""});
+
+      const choiceElement = choices ? choices.find(choice => choice.frameId === frameId) : null;
+      
+      if (choiceElement) {
+          // Handle each choice recursively
+          choiceElement.answers?.forEach((answer) => {
+            processFrame(answer.nextFrame, answer.identifier);
+          });
+      } else {
+          processFrame(activeFrame.nextFrameId, key);
+      }
   }
 
-  for (let frame of frames){
-    const bubble = bubbles ? bubbles.find(bubble => bubble.frameId === frame.id) : null;
-    if (!orderedFrames.includes(frame)) {
-      disconnectedFrames.push({frame: frame, text: bubble ? bubble.content["de"] : ""});
-    }
+  const initialFrame = frames.find(f => f.first);
+  if (initialFrame) {
+      processFrame(initialFrame.id, currentKey);
   }
 
-  return {orderedFrames: orderedFrames, disconnectedFrames: disconnectedFrames};
+  return orderedFramesDict;
 }

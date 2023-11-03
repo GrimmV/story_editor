@@ -1,9 +1,10 @@
 import { Box, Paper, Button } from '@mui/material';
 import React from 'react';
+import AnswerButtonPopover from './AnswerButtonPopover';
 
 export default function EditorArea(props) {
 
-    const {choices, character, bubble, frame} = props;
+    const {refetchChoices, choices, character, bubble, frame} = props;
 
     const renderChoices = () => {
         let choicesJS = [];
@@ -11,11 +12,12 @@ export default function EditorArea(props) {
         if (choices["answers"]) {
             Object.entries(choices["answers"]).forEach(([k,v]) => {
                 choicesJS.push(
-                    <Box key={k}>
-                        <Button color={v.correct ? "success" : "error"}
-                            sx={{mb: 1, display: "block"}} variant="contained"
-                        >{v["answer"]["de"]}</Button>
-                    </Box>
+                    // <Box key={k}>
+                        <AnswerButtonPopover answer={v} key={k} refetch={refetchChoices} choicesId={choices.id}/>
+                        // {/* <Button color={v.correct ? "success" : "error"}
+                        //     sx={{mb: 1, display: "block"}} variant="contained"
+                        // >{v["answer"]["de"]}</Button> */}
+                    // </Box>
                 )
             })
         }
@@ -69,7 +71,7 @@ export default function EditorArea(props) {
                         bottom: choices.position.y + "%",
                         left: choices.position.x + "%",
                     }}>
-                        {renderChoices(choices)}
+                        {renderChoices()}
                     </Box>
                 }
             </Paper>

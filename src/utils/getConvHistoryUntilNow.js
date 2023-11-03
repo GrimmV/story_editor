@@ -1,29 +1,43 @@
 
-export const getConvHistoryUntilNow = (frames, bubbles, endFrameId) => {
+export const getConvHistoryUntilNow = (frames, bubbles, choices, endFrameId) => {
 
-
-    console.log(frames);
-    console.log(bubbles);
-
-    let orderedFrames = [];
-    // let disconnectedFrames = [];
     let bubbleTexts = [];
   
-    let activeFrame = frames.find((f) => f.first);
+    let activeFrame = frames.find((f) => f.id === endFrameId);
+    if (!activeFrame) return []
     
-    while (activeFrame) {
-        if (endFrameId !== activeFrame.id) {
-            orderedFrames.push(activeFrame);
-            activeFrame = frames.find((f) => {
-              return f.id === activeFrame.nextFrameId;
-            });
-        } else break;
-    }
-
-    for (let frame of orderedFrames) {
-        const bubble = bubbles.find(bubble => frame.id === bubble.frameId)
+    do {
+        const activeFrameId = activeFrame.id;
+        activeFrame = frames.find((f) => {
+            return f.nextFrameId === activeFrameId;
+        });
+        if (!activeFrame) {
+            const [frameId, answer] = findElementByNextFrame(choices, activeFrameId);
+            if (frameId) {
+                activeFrame = frames.find(f => {
+                    return f.id === frameId
+                })
+                bubbleTexts.push(answer);
+            } else {
+                break;
+            }
+        }
+        const bubble = bubbles.find(bubble => activeFrame.id === bubble.frameId)
         bubbleTexts.push(bubble ? bubble.content.de : "")
-    }
+    } while (!activeFrame.first)
 
-    return bubbleTexts
+
+    const reverseBubbleTexts = bubbleTexts.reverse()
+    return reverseBubbleTexts
+}
+
+function findElementByNextFrame(objectsList, targetNextFrame) {
+  for (let obj of objectsList) {
+    for (let answer of obj.answers) {
+      if (answer.nextFrame === targetNextFrame) {
+        return [obj.frameId, answer.answer.de]
+      }
+    }
+  }
+  return [null, ""];  // Return null if no matching element is found
 }

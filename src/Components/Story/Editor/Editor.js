@@ -1,4 +1,4 @@
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Button, Grid, Typography } from "@mui/material";
 import ChooseFrameBar from "./ChooseFrameBar";
 // import EditorArea from "./EditorArea"
 // import ChooseComponents from "./ChooseComponents"
@@ -13,7 +13,7 @@ import {
 } from "../../../fetching/retrieve";
 import { useQuery } from "react-query";
 import { fetchLoadingHandler } from "../../../utils/fetchLoadingHandler";
-import { changeChoiceNextFrame, createFrame, deleteFrame, moveFrame } from "../../../fetching/update";
+import { changeChoiceNextFrame, createFrame, deleteFrame, getSubstoryGPTinfo } from "../../../fetching/update";
 import { fetchErrorHandler } from "../../../utils/fetchErrorHandler";
 import EditorArea from "./EditorArea";
 import ChooseComponents from "./ChooseComponents";
@@ -21,6 +21,11 @@ import { getConvHistoryUntilNow } from "../../../utils/getConvHistoryUntilNow";
 import GPTSetup from "./GptSetup";
 import { toStoryEditor } from "../../../routing/routes";
 import { useState } from "react";
+import organizeFrames from "../../../utils/orderFrames";
+import findKeyForFrameId from "../../../utils/findKeyForFrameId";
+import MainSim from "../Simulator/MainSim";
+import { Slideshow } from "@mui/icons-material";
+import { getGptConfig } from "../../../fetching/gpt";
 
 export default function Editor(props) {
   const token = getToken();
@@ -29,15 +34,34 @@ export default function Editor(props) {
 
   const navigate = useNavigate();
 
-  const [gptSetup, setGptSetup] = useState({
-    workArea: "", employee: "", employeeInfo: "", employer: "", employerInfo: ""
-  })
+  const [simModalOpen, setSimModalOpen] = useState(false);
+
+
+  const closeSimModal = () => {
+    setSimModalOpen(false);
+  }
+
+  const openSimModal = () => {
+    setSimModalOpen(true);
+  }
 
   const {
     data: story,
     isError: storyError,
     isLoading: storyIsLoading,
   } = useQuery(["story", storyId], () => fetchStory(storyId));
+  const {
+    data: gptConfig,
+    isError: gptConfigError,
+    isLoading: gptConfigIsLoading,
+  } = useQuery(["gptConfig"], getGptConfig);
+  const {
+    data: gptSetup,
+    isError: storyGPTinfoError,
+    isLoading: storyGPTinfoIsLoading,
+    isFetching: storyGPTinfoIsFetching,
+    refetch: setupRefetch
+  } = useQuery(["gptSetup", storyId], () => getSubstoryGPTinfo(storyId));
   const {
     data: frames,
     isError: framesError,
@@ -82,13 +106,6 @@ export default function Editor(props) {
       }
     });
   };
-
-  const moveFramePosition = (sourceFrameId, newPrevFrameId) => {
-    return moveFrame(token, sourceFrameId, newPrevFrameId).then(response => {
-      framesRefetch();
-      return response.id
-    });
-  };
   
   const addNextFrameToChoice = (choiceId, answerId, nextFrameId) => {
     changeChoiceNextFrame(token, choiceId, answerId, nextFrameId).then(() => {
@@ -97,18 +114,27 @@ export default function Editor(props) {
   };
 
   const loadingResult = fetchLoadingHandler(
-    [framesIsLoading, storyIsLoading, charactersIsLoading, bubblesIsLoading, choicesIsLoading],
-    ["Frames", "Story", "Characters", "Sprechblasen", "Entscheidungen"]
+    [framesIsLoading, storyIsLoading, charactersIsLoading, bubblesIsLoading, choicesIsLoading, gptConfigIsLoading],
+    ["Frames", "Story", "Characters", "Sprechblasen", "Entscheidungen", "Anderes"]
   );
   const errorResult = fetchErrorHandler(
-    [framesError, storyError, charactersError, bubblesError, choicesError],
-    ["Frames", "Story", "Characters", "Sprechblasen", "Entscheidungen"]
+    [framesError, storyError, charactersError, bubblesError, choicesError, gptConfigError],
+    ["Frames", "Story", "Characters", "Sprechblasen", "Entscheidungen", "Anderes"]
   );
 
   if (loadingResult) return loadingResult;
   if (errorResult) return errorResult;
+
+  const {gpt: gptActive, temperatureActive: tempActive} = gptConfig;
+
+  const conversationHistory = getConvHistoryUntilNow(frames, bubbles, choices, frameId);
   
-  const conversationHistory = getConvHistoryUntilNow(frames, bubbles, frameId);
+  const orderedFrames = organizeFrames(frames, bubbles, choices);
+  const titleFrame = findKeyForFrameId(orderedFrames, frameId)
+    ? findKeyForFrameId(orderedFrames, frameId)
+    : "first";
+
+  const isLastFrame = orderedFrames[titleFrame].length - 1 === orderedFrames[titleFrame].findIndex(frame => frame.frame.id === frameId)
 
   const activeBubble = bubbles.find((v) => v.frameId === frameId);
   const activeCharacter = characters.find((v) => v.frameId === frameId);
@@ -121,10 +147,9 @@ export default function Editor(props) {
         <Grid sx={{ p: 3 }} container>
           <Grid xs={4} item>
             <ChooseFrameBar
-              bubbles={bubbles}
-              frames={frames}
+              orderedFrames={orderedFrames}
+              titleFrame={titleFrame}
               addNewFrame={addFrame}
-              moveFrame={moveFramePosition}
               choices={choices}
               addNextFrameToChoice={addNextFrameToChoice}
               removeFrame={removeFrame}
@@ -132,6 +157,7 @@ export default function Editor(props) {
           </Grid>
           <Grid xs={4} item>
             <EditorArea
+              refetchChoices={choicesRefetch}
               choices={activeChoices}
               character={activeCharacter}
               bubble={activeBubble}
@@ -140,8 +166,13 @@ export default function Editor(props) {
           </Grid>
           <Grid xs={4} item>
             <ChooseComponents
+              isLastFrame={isLastFrame}
+              orderedFrames={orderedFrames}
               conversationHistory={conversationHistory}
+              gptActive={gptActive}
               gptSetup={gptSetup}
+              gptSetupIsLoading={storyGPTinfoIsFetching || storyGPTinfoIsLoading}
+              gptSetupError={storyGPTinfoError}
               frame={activeFrame}
               character={activeCharacter}
               bubble={activeBubble}
@@ -162,9 +193,10 @@ export default function Editor(props) {
         <Grid sx={{ p: 3 }} container>
           <Grid xs={3} item>
             <ChooseFrameBar
+              orderedFrames={orderedFrames}
+              titleFrame={titleFrame}
               frames={frames}
               addNewFrame={addFrame}
-              moveFrame={moveFramePosition}
               choices={choices}
               addNextFrameToChoice={addNextFrameToChoice}
             />
@@ -175,15 +207,37 @@ export default function Editor(props) {
   };
 
   return (
-    <Box>
+    <Box sx={{display: "flex", flexDirection: "column", alignItems: "center"}}>
       <Typography variant="h1" align="center">
-        Story Editor
-      </Typography>
-      <Typography variant="h2" align="center">
         {story.title["de"]}
       </Typography>
-      <GPTSetup gptSetup={gptSetup} setGptSetup={setGptSetup}/>
+    <Box sx={{ width: "100%", height: "100%", bgcolor: "lightgrey", display: "flex", alignItems: "center", justifyContent: "center", mt: 2}}>
+      <Typography variant="h3">Meta Informationen</Typography>
+    </Box>
+    <GPTSetup
+      storyId={storyId}
+      gptSetup={gptSetup}
+      isFetching={storyGPTinfoIsFetching}
+      isError={storyGPTinfoError}
+      refetch={setupRefetch}
+      gptActive={gptActive}
+      tempActive={tempActive}
+    />
+    <Box sx={{ width: "100%", height: "100%", bgcolor: "lightgrey", display: "flex", alignItems: "center", justifyContent: "center", mt: 1, mb: 2}}>
+      <Typography variant="h3">Geschichte schreiben</Typography>
+    </Box>
+      <Box>
+        <Button onClick={openSimModal} variant="contained" startIcon=<Slideshow/>>Simulation</Button>
+      </Box>
       {gridRenderer()}
+      <MainSim
+        modalOpen={simModalOpen}
+        closeModal={closeSimModal}
+        frames={frames}
+        choices={choices}
+        bubbles={bubbles}
+        characters={characters}
+      />
     </Box>
   );
 }

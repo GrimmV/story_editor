@@ -5,10 +5,11 @@ import { base_user_url } from "../config";
 
 const fullBasePath = contentAddress + base_user_url;
 
-export const fetchStories = () => {
+export const fetchStories = (token) => {
 
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Authorization", "Bearer " + token);
 
     const requestOptions = {
         method: 'GET',
@@ -16,7 +17,7 @@ export const fetchStories = () => {
         redirect: 'follow'
     };
 
-    return fetch(fullBasePath + "/substory/all", requestOptions)
+    return fetch(fullBasePath + "/substory/student", requestOptions)
     .then(response => handleResponse(response))
     .then(response => response.json())
     .catch(error => {

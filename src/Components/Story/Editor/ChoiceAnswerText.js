@@ -7,7 +7,7 @@ export default function ChoiceAnswerText(props) {
     return(
         <Box>
             <TextField textvalue={text} onChange={handleChange} placeholder='Antwortmöglichkeit'/>
-            {isInvalidValue() && <FormHelperText error>{getErrorMessage()}</FormHelperText>}
+            {isInvalidValue() && <FormHelperText error sx={{maxWidth: 250}}>{getErrorMessage()}</FormHelperText>}
         </Box>
     )
 }

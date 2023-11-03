@@ -12,15 +12,16 @@ import { useNavigate } from "react-router-dom";
 import { toStoryEditor } from "../../../routing/routes";
 
 export default function StoryOverview(props) {
+
+  const token = getToken();
   const {
     data: stories,
-    isError: isError,
-    isLoading: isLoading,
+    isError,
+    isLoading,
     refetch,
-  } = useQuery("stories", fetchStories);
+  } = useQuery(["stories", token], () => fetchStories(token));
 
   const navigate = useNavigate()
-  const token = getToken();
 
   const moveToStory = (id) => {
     navigate(toStoryEditor(id));

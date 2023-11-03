@@ -26,8 +26,8 @@ function App() {
 
   const {
     data: tokenNotExpired,
-    isError: isError,
-    isLoading: isLoading,
+    isError,
+    isLoading,
   } = useQuery("tokenExpiry", handleTokenExpiry);
 
   useEffect(() => {
@@ -42,9 +42,6 @@ function App() {
   );
 
   if (loadingResult) return loadingResult;
-  // if (isError) {
-  //   setIsAuthorized(false)
-  // }
 
   const logout = () => {
     setIsAuthorized(false);
@@ -60,7 +57,7 @@ function App() {
           <Menu logout={logout} />
           <Box sx={{ m: 5 }}>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<StoryOverview />} />
               <Route path="/stories" element={<StoryOverview />} />
               {["/stories/:storyId", "/stories/:storyId/:frameId"].map(
                 (path, index) => {

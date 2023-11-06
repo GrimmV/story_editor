@@ -229,6 +229,26 @@ export const changePosition = (token, type, id, newPositionX, newPositionY) => {
     .catch((error) => console.log("error", error));
 };
 
+export const changeIsFlipped = (token, type, id, isFlipped) => {
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", "Bearer " + token);
+
+  const raw = isFlipped
+
+  const requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+    body: raw,
+    redirect: "follow",
+  };
+
+  return fetch(fullBasePath + "/" + type + "/flip/" + id, requestOptions)
+    .then((response) => handleResponse(response))
+    .then((response) => response.json())
+    .catch((error) => console.log("error", error));
+};
+
 export const changeCharacterHeight = (token, id, newHeight) => {
   const myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");

@@ -145,7 +145,7 @@ export default function Editor(props) {
     if (frameId) {
       return (
         <Grid sx={{ p: 3 }} container>
-          <Grid xs={4} item>
+          <Grid xs={12} md={6} lg={4} item>
             <ChooseFrameBar
               orderedFrames={orderedFrames}
               titleFrame={titleFrame}
@@ -155,7 +155,7 @@ export default function Editor(props) {
               removeFrame={removeFrame}
             />
           </Grid>
-          <Grid xs={4} item>
+          <Grid xs={12} md={6} lg={4} item>
             <EditorArea
               refetchChoices={choicesRefetch}
               choices={activeChoices}
@@ -164,7 +164,7 @@ export default function Editor(props) {
               frame={activeFrame}
             />
           </Grid>
-          <Grid xs={4} item>
+          <Grid xs={12} lg={4} item>
             <ChooseComponents
               isLastFrame={isLastFrame}
               orderedFrames={orderedFrames}
@@ -191,7 +191,7 @@ export default function Editor(props) {
     } else {
       return (
         <Grid sx={{ p: 3 }} container>
-          <Grid xs={3} item>
+          <Grid xs={12} md={6} lg={4} item>
             <ChooseFrameBar
               orderedFrames={orderedFrames}
               titleFrame={titleFrame}

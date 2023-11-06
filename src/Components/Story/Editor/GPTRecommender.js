@@ -38,7 +38,7 @@ export default function GPTRecommender(props) {
   const saveContent = () => {
     saveBubbleContent(token, bubbleId, gpt.Text).then(() => {
       bubblesRefetch();
-      uploadClick("gpt", `empfehlung nutzen ${shortenFrameId(frameId)}`)
+      uploadClick("gpt", `empfehlung nutzen ${shortenFrameId(frameId)}: ${gpt.Text}`)
     });
   };
 

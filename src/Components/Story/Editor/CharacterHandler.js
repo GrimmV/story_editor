@@ -1,16 +1,16 @@
 import React, { useState } from "react";
-import { Box, Button, IconButton, Slider, Typography } from "@mui/material";
+import { Box, Checkbox, Slider, Typography } from "@mui/material";
 import ImageChooser from "../../Utility/ImageChooser";
 import {
   changeCharacterHeight,
   changeCharacterImgSrc,
+  changeIsFlipped,
   changePosition,
   deleteCharacterImg,
   getCharacterImageCollection,
 } from "../../../fetching/update";
 import { getToken } from "../../../utils/getToken";
 import EasyPopover from "../Utils/EasyPopover";
-import { Settings } from "@mui/icons-material";
 
 export default function CharacterHandler(props) {
   const { character, refetch } = props;
@@ -22,6 +22,15 @@ export default function CharacterHandler(props) {
 
   const savePosition = (newX, newY) => {
     changePosition(token, "characterframe", character.id, newX, newY).then(
+      () => {
+        refetch();
+      }
+    );
+  };
+
+  const saveFlipped = (event) => {
+    const isFlipped = event.target.checked;
+    changeIsFlipped(token, "characterframe", character.id, isFlipped).then(
       () => {
         refetch();
       }
@@ -110,6 +119,11 @@ export default function CharacterHandler(props) {
                     saveHeight(newValue);
                   }}
                 />
+              </Box>
+              
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Typography>Gespiegelt: </Typography>
+                <Checkbox defaultValue={character.flipped} onChange={saveFlipped}/>
               </Box>
             </Box>
           </EasyPopover>

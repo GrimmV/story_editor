@@ -1,9 +1,11 @@
-import { ArrowBack, Check, Edit, Send, Upgrade } from "@mui/icons-material";
+import {
+  ChangeCircleOutlined,
+  CloudDone,
+} from "@mui/icons-material";
 import {
   Box,
   Button,
   CircularProgress,
-  IconButton,
   Paper,
   TextField,
   Typography,
@@ -14,11 +16,13 @@ import {
   updateEmployeeInfo,
   updateEmployer,
   updateEmployerInfo,
+  updateOutline,
   updateWorkarea,
 } from "../../../fetching/update";
 import { getToken } from "../../../utils/getToken";
 import GptSetupOutline from "./GptSetupOutline";
 import TemperatureSlider from "./TemperatureSlider";
+import HelpPopover from "../../Utility/HelpPopover";
 
 export default function GPTSetup(props) {
   const {
@@ -32,19 +36,19 @@ export default function GPTSetup(props) {
   } = props;
 
   const token = getToken();
-  const [editable, setEditable] = useState("");
 
   useEffect(() => {
     if (!tempActive) {
       localStorage.removeItem("temperature");
     }
-  }, [tempActive])
+  }, [tempActive]);
 
   let workArea;
   let employer;
   let employerInfo;
   let employee;
   let employeeInfo;
+  let outline;
 
   if (isFetching)
     return (
@@ -68,12 +72,14 @@ export default function GPTSetup(props) {
     employerInfo = "";
     employee = "";
     employeeInfo = "";
+    outline = "";
   } else {
     workArea = gptSetup.workArea;
     employer = gptSetup.employer;
     employerInfo = gptSetup.employerInfo;
     employee = gptSetup.employee;
     employeeInfo = gptSetup.employeeInfo;
+    outline = gptSetup.outline;
   }
 
   const setWorkArea = (newWorkArea) =>
@@ -90,48 +96,42 @@ export default function GPTSetup(props) {
     updateEmployeeInfo(token, storyId, newEmployeeInfo).then((resp) =>
       refetch()
     );
+  const setOutline = (newOutline) => {
+    updateOutline(token, storyId, newOutline).then((resp) => refetch());
+  };
 
   const mainElements = [
-    { title: "Arbeitsfeld", value: workArea, setValue: setWorkArea },
-    { title: "Arbeitgeber*in", value: employer, setValue: setEmployer },
-    { title: "Hausangestellte*r", value: employee, setValue: setEmployee },
+    { title: "Arbeitsfeld", info: "Titel des Arbeitsfelds, bspw: Reinigungsarbeit, Pflege, Gartenarbeit, Kinderbetreuung, ...", value: workArea, setValue: setWorkArea },
+    { title: "Arbeitgeber*in", info: "Name der Arbeitgeber*in", value: employer, setValue: setEmployer },
+    { title: "Hausangestellte*r", info: "Name der/des Haushaltsangestelten", value: employee, setValue: setEmployee },
   ];
 
   const subElements = [
     {
       title: "Persönliches AG",
+      info: "Persönliche Informationen über den/die Arbeitgeber*in. Beispielsweise Persönlichkeitsmerkmale, äußere Merkmale, Beruf, Hobbies, aktuelle Stimmung, ...",
       value: employerInfo,
       setValue: setEmployerInfo,
     },
     {
       title: "Persönliches HA",
+      info: "Persönliche Informationen über den/die Haushaltsangestellte/n. Beispielsweise Persönlichkeitsmerkmale, äußere Merkmale, weitere Beruf, Hobbies, aktuelle Stimmung, ...",
       value: employeeInfo,
       setValue: setEmployeeInfo,
     },
   ];
 
   const renderConfigElement = (elem, multiline = false) => {
-    if (editable === elem.title) {
-      return (
-        <FieldComponent
-          key={elem.title}
-          title={elem.title}
-          value={elem.value}
-          unsetEditable={() => setEditable("")}
-          setValue={elem.setValue}
-          multiline={multiline}
-        />
-      );
-    } else {
-      return (
-        <TextComponent
-          key={elem.title}
-          title={elem.title}
-          value={elem.value}
-          setEditable={() => setEditable(elem.title)}
-        />
-      );
-    }
+    return (
+      <FieldComponent
+        key={elem.title}
+        title={elem.title}
+        info={elem.info}
+        value={elem.value}
+        setValue={elem.setValue}
+        multiline={multiline}
+      />
+    );
   };
 
   return (
@@ -187,8 +187,8 @@ export default function GPTSetup(props) {
       </Paper>
       <GptSetupOutline
         gptSetup={gptSetup}
-        refetch={refetch}
-        storyId={storyId}
+        outline={outline}
+        setOutline={setOutline}
         isFetching={isFetching}
         gptActive={gptActive}
       />
@@ -196,54 +196,55 @@ export default function GPTSetup(props) {
   );
 }
 
-function TextComponent(props) {
-  const { title, value, setEditable } = props;
-
-  return (
-    <Box sx={{ display: "flex", alignItems: "center" }}>
-      <Typography sx={{ mr: 1 }} fontWeight={500}>
-        {title}:{" "}
-      </Typography>
-      <Typography>{value}</Typography>
-      <IconButton onClick={setEditable}>
-        <Edit color="primary" />
-      </IconButton>
-    </Box>
-  );
-}
-
 function FieldComponent(props) {
-  const { title, value, unsetEditable, setValue, multiline } = props;
+  const { title, info, value, setValue, multiline } = props;
 
   const [tmpValue, setTmpValue] = useState(value);
 
-  const handleCheck = () => {
+  const handleSave = () => {
     if (value !== tmpValue) {
       setValue(tmpValue);
     }
-    unsetEditable();
+  };
+
+  const computeStatusIcon = () => {
+    if (tmpValue === value) return <CloudDone color="success" />;
+    else return <ChangeCircleOutlined color="error" />;
   };
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center" }}>
-      <Typography sx={{ mr: 1 }} fontWeight={500}>
-        {title}:
-      </Typography>
-      <TextField
-        multiline={multiline}
-        value={tmpValue}
-        onChange={(e) => setTmpValue(e.target.value)}
-        InputProps={{
-          endAdornment: (
-            <IconButton
-              onClick={handleCheck}
-              sx={{ color: "primary.main", "&:hover": { cursor: "pointer" } }}
-            >
-              <Check />
-            </IconButton>
-          ),
-        }}
-      />
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        width: 200, mb: 2
+      }}
+    >
+      <Box sx={{display: "flex", alignItems: "center"}}>
+        <Typography sx={{fontWeight: 500}}>{title}</Typography>
+        <HelpPopover info={[info]} notAbsolute/>
+      </Box>
+      <Paper>
+        <TextField
+          multiline={multiline}
+          minRows={2}
+          sx={{ width: "100%" }}
+          value={tmpValue}
+          onChange={(e) => setTmpValue(e.target.value)}
+          InputProps={{
+            endAdornment: computeStatusIcon(),
+          }}
+        />
+      </Paper>
+      <Button
+        sx={{ width: "100%" }}
+        variant="contained"
+        onClick={handleSave}
+        disabled={tmpValue === value}
+      >
+        Aktualisieren
+      </Button>
     </Box>
   );
 }

@@ -81,7 +81,8 @@ export default function MainSim(props) {
                             <img style={{
                                 position: "absolute", bottom: character.position.y + "%",
                                 left: character.position.x + "%", 
-                                height: character.height + "%"
+                                height: character.height + "%",
+                                transform: character.flipped ? "scaleX(-1)" : "scaleX(1)"
                             }} src={character.imageSrc} alt="character"/>
                         }
                         {

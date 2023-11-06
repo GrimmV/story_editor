@@ -1,4 +1,4 @@
-import { Box, Paper, Button } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 import React from 'react';
 import AnswerButtonPopover from './AnswerButtonPopover';
 
@@ -40,7 +40,8 @@ export default function EditorArea(props) {
                     <img style={{
                         position: "absolute", bottom: character.position.y + "%",
                         left: character.position.x + "%", 
-                        height: character.height + "%"
+                        height: character.height + "%",
+                        transform: character.flipped ? "scaleX(-1)" : "scaleX(1)"
                     }} src={character.imageSrc} alt="character"/>
                 }
                 {

@@ -1,4 +1,8 @@
-import { ChangeCircleOutlined, Check, CloudDone, Error, Send } from "@mui/icons-material";
+import {
+  ChangeCircleOutlined,
+  CloudDone,
+  Send,
+} from "@mui/icons-material";
 import {
   Box,
   Paper,
@@ -8,14 +12,11 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
-import { updateOutline } from "../../../fetching/update";
-import { getToken } from "../../../utils/getToken";
 import { getOutlineRecommendation } from "../../../fetching/gpt";
+import uploadClick from "../../../fetching/uploadData";
 
 export default function GptSetupOutline(props) {
-  const { gptSetup, refetch, storyId, isFetching, gptActive } = props;
-  const token = getToken();
-  const outline = gptSetup.outline;
+  const { gptSetup, outline, setOutline, isFetching, gptActive } = props;
   const paperStyle = {
     p: 1,
     mb: 1,
@@ -28,9 +29,9 @@ export default function GptSetupOutline(props) {
 
   const [localOutline, setLocalOutline] = useState(outline);
 
-  const setOutline = (outline) => () => {
+  const setTheOutline = () => {
     if (outline === localOutline) return;
-    updateOutline(token, storyId, outline).then((resp) => refetch());
+    setOutline(localOutline)
   };
 
   const computeOutlineIcon = () => {
@@ -38,8 +39,15 @@ export default function GptSetupOutline(props) {
     else return <ChangeCircleOutlined color="error" />;
   };
 
+  const handleTransfer = () => {
+
+    setLocalOutline(gptOutline?.Kontext + gptOutline?.Entscheidungspunkt);
+    uploadClick("gpt/outline", `outline Empfehlung genutzt: ${gptOutline?.Kontext + gptOutline?.Entscheidungspunkt}`);
+  };
+
   const handleOutlineRecommendation = () => {
     setIsFetchingGpt(true);
+    setIsErrorGpt(false);
     getOutlineRecommendation(gptSetup)
       .then((resp) => {
         setGptOutline(resp);
@@ -48,14 +56,15 @@ export default function GptSetupOutline(props) {
         setIsFetchingGpt(false);
       })
       .catch((error) => {
-        setIsErrorGpt(true)
-        setIsFetchingGpt(false)
+        console.log(error)
+        setIsErrorGpt(true);
+        setIsFetchingGpt(false);
       });
   };
 
   let output;
 
-  if (!gptOutline && (!isFetchingGpt && !isErrorGpt))
+  if (!gptOutline && !isFetchingGpt && !isErrorGpt)
     output = (
       <Typography>
         Generiere einen möglichen Kontext für die Geschichte.
@@ -151,22 +160,27 @@ export default function GptSetupOutline(props) {
             <Button
               sx={{ width: "100%" }}
               variant="contained"
-              onClick={setOutline(localOutline)}
+              onClick={setTheOutline}
+              disabled={localOutline === outline}
             >
               Kontext Aktualisieren
             </Button>
           </Box>
           {gptActive && (
-            <Box sx={{display: "flex", alignItems: "center", justifyContent: "center"}}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Button
                 disabled={!gptOutline}
                 variant="contained"
                 color="secondary"
                 sx={{ mr: 1, ml: 1, height: "fit-content" }}
                 startIcon={<Send sx={{ transform: "rotate(180deg)" }} />}
-                onClick={setOutline(
-                  gptOutline?.Kontext + gptOutline?.Entscheidungspunkt
-                )}
+                onClick={handleTransfer}
               >
                 Übertragen
               </Button>

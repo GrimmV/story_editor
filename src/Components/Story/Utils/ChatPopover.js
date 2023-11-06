@@ -24,7 +24,7 @@ export default function ChatPopover(props) {
       <Button onClick={handleClick} color="secondary" variant="contained" sx={{borderRadius: 100}} startIcon={<Chat/>}>ChatGPT Empfehlung anzeigen</Button>
       <Popover
         id={id}
-        keepMounted
+        
         open={open}
         anchorEl={anchorEl}
         onClose={handleClose}
@@ -32,10 +32,6 @@ export default function ChatPopover(props) {
           vertical: "bottom",
           horizontal: "left",
         }}
-        // anchorPosition={{
-        //     left: 100,
-        //     top: 100
-        // }}  
       >
         <Box sx={{maxWidth: "35rem", m: 2}}>
         {children}

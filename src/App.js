@@ -11,6 +11,7 @@ import StoryOverview from "./Components/Story/Stories/StoryOverview";
 import { getToken } from "./utils/getToken";
 import Editor from "./Components/Story/Editor/Editor";
 import { fetchLoadingHandler } from "./utils/fetchLoadingHandler";
+// import CharacterCreator from "./Components/CharacterCreator/CharacterCreator";
 
 function App() {
   let token = getToken();

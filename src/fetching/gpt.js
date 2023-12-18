@@ -3,14 +3,15 @@ import { gptAddress } from "../config";
 const firebase_url = "https://story-editor-7ee30-default-rtdb.europe-west1.firebasedatabase.app"
 
 
-export const getRecommendation = (gptSetup, storyHistory) => {
+export const getRecommendation = (gptSetup, storyHistory, characterChoice=null) => {
 
     const requestOptions = {
         method: "POST",
         redirect: "follow",
         body: JSON.stringify({
             history: storyHistory,
-            setup: gptSetup
+            setup: gptSetup,
+            character_choice: characterChoice
         })
     }
     const temperature = localStorage.getItem("temperature")

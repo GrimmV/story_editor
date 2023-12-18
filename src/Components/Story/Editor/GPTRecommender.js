@@ -1,7 +1,6 @@
-import { Replay, SaveAlt } from "@mui/icons-material";
+import { SaveAlt } from "@mui/icons-material";
 import {
   Box,
-  Button,
   CircularProgress,
   IconButton,
   Typography,
@@ -13,12 +12,16 @@ import { useQuery } from "react-query";
 import { useParams } from "react-router-dom";
 import uploadClick from "../../../fetching/uploadData";
 import { shortenFrameId } from "../../Utility/Helper";
+import DropDownButton from "../../Utility/DropDownButton";
+import { useState } from "react";
 
 export default function GPTRecommender(props) {
   const { conversationHistory, gptSetup, bubblesRefetch, bubbleId } = props;
   const { storyId, frameId } = useParams();
 
   const token = getToken();
+
+  const [characterChoice, setCharacterChoice] = useState(null);
 
   const paperStyle = {
     p: 1,
@@ -32,7 +35,7 @@ export default function GPTRecommender(props) {
     isFetching,
     refetch
   } = useQuery(["gpt-recommendation", storyId, frameId], () =>
-    getRecommendation(gptSetup, conversationHistory)
+    getRecommendation(gptSetup, conversationHistory, characterChoice)
   );
 
   const saveContent = () => {
@@ -134,7 +137,16 @@ export default function GPTRecommender(props) {
     <Box>
       <Box sx={{display: "flex", justifyContent: "space-between", mb: 1}}>
         <Typography variant="h3">Chat-GPT Unterstützung</Typography>
-        <Button onClick={refetch} disabled={isFetching} endIcon=<Replay/> color="primary">Erneuern</Button>
+        <Box sx={{display: "flex", flexDirection: "column", alignItems: "left"}}>
+        <DropDownButton text="Erneuern" characterOptions={[gptSetup["employee"], gptSetup["employer"]]}
+          characterChoice={characterChoice} setCharacterChoice={setCharacterChoice} action={refetch}
+        />
+        {
+          characterChoice &&
+          <Typography>...mit {characterChoice}</Typography>
+        }
+
+        </Box>
       </Box>
       {output}
     </Box>
